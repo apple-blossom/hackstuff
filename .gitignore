@@ -7,6 +7,8 @@
 /.next/
 /out/
 
+/api/.env
+
 # production
 /build
 
