@@ -1,5 +1,6 @@
 # Apply nest_asyncio to allow nested event loops
 import nest_asyncio
+
 nest_asyncio.apply()
 
 # Import standard libraries
@@ -53,7 +54,10 @@ is_crawler_running = False
 if not reactor.running:
     def run_reactor() -> None:
         reactor.run(installSignalHandlers=False)
+
+
     Thread(target=run_reactor, daemon=True).start()
+
 
 # Define the schema for food items
 class FoodItem(BaseModel):
@@ -63,15 +67,16 @@ class FoodItem(BaseModel):
     price: str
     quantity: str
 
+
 # List of target websites
 WEBSITES = [
     "https://www.aldi-nord.de/",
     "https://www.aldi-nord.de/"
 ]
 
+
 def extract_food_items(page_text: str) -> list[FoodItem]:
-    """
-    Use the Gemini API to extract food item details from page_text.
+    """Use the Gemini API to extract food item details from page_text.
     Returns a list of FoodItem objects.
     """
     if not GEMINI_API_KEY:
@@ -138,6 +143,7 @@ def extract_food_items(page_text: str) -> list[FoodItem]:
         print(f"Gemini API error: {str(e)}")
         return []
 
+
 class FoodCrawler(scrapy.Spider):
     name = "food_crawler"
 
@@ -161,8 +167,7 @@ class FoodCrawler(scrapy.Spider):
             )
 
     def parse_page(self, response):
-        """
-        Parse the response and extract food items using Gemini API.
+        """Parse the response and extract food items using Gemini API.
         Save the results in the database.
         """
         page_text = response.text
@@ -182,9 +187,9 @@ class FoodCrawler(scrapy.Spider):
         finally:
             session.close()
 
+
 def crawl() -> dict:
-    """
-    Schedule the FoodCrawler to run.
+    """Schedule the FoodCrawler to run.
     Returns a message if a crawl is already in progress.
     """
     global is_crawler_running
@@ -227,30 +232,28 @@ def crawl() -> dict:
         cleanup(None)
         raise e
 
+
 router = APIRouter()
+
 
 @router.get("/scrape")
 async def scrape_data(background_tasks: BackgroundTasks) -> dict:
-    """
-    Endpoint to trigger the crawl in the background.
-    """
+    """Endpoint to trigger the crawl in the background."""
     if is_crawler_running:
         return {"message": "Crawler is already running"}
     background_tasks.add_task(crawl)
     return {"message": "Scrape started in background"}
 
+
 @router.get("/status")
 def get_crawler_status() -> dict:
-    """
-    Endpoint to check if a crawl is currently running.
-    """
+    """Endpoint to check if a crawl is currently running."""
     return {"is_running": is_crawler_running}
+
 
 @router.get("/results")
 def get_results() -> dict:
-    """
-    Endpoint to retrieve scraped results from the database.
-    """
+    """Endpoint to retrieve scraped results from the database."""
     session = get_session()
     try:
         items = session.query(FoodItemDB).all()
