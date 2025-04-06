@@ -10,3 +10,5 @@ psycopg2-binary==2.9.9
 asyncpg==0.28.0
 aiosqlite==0.19.0
 google-genai
+Scrapy
+nest-asyncio
